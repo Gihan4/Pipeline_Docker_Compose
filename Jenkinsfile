@@ -82,7 +82,7 @@ pipeline {
             steps {
                 echo "Building Docker image from app..."
                 dir('docker_compose_project') {
-                    sh 'docker build -t gihan4/appimage:${BUILD_NUMBER} app/Dockerfile .'
+                    sh 'docker build -t gihan4/appimage:${BUILD_NUMBER} -f app/Dockerfile .'
                 }
             }
         }
