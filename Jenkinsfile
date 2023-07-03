@@ -74,7 +74,7 @@ pipeline {
             steps {
                 echo "Cloning repository..."
                 try {
-                    sh 'git clone https://github.com/Gihan4/docker_compose_project.git'
+                    git 'https://github.com/Gihan4/docker_compose_project.git'
                     sh 'ls'
                 } catch (Exception e) {
                     // error message
