@@ -80,28 +80,30 @@ pipeline {
 
         stage('Build Docker Image') {
             steps {
-                echo "Building Docker image..."
+                echo "Building Docker image from app..."
                 dir('docker_compose_project') {
-                    sh 'docker build -t gihan4/docker-compose-image:${BUILD_NUMBER} .'
+                    sh 'docker build -t gihan4/appimage:${BUILD_NUMBER} app/Dockerfile .'
                 }
             }
         }
 
-        stage('Push Image to Docker Hub') {
+        stage('Push app Image to Docker Hub') {
             steps {
                 echo "Pushing Docker image to Docker Hub..."
-                sh 'docker push gihan4/docker-compose-image:${BUILD_NUMBER}'
+                sh 'docker push gihan4/appimage:${BUILD_NUMBER}'
             }
         }
 
         stage('Deploy on Test server') {
             steps {
                 echo "Deploying and testing on AWS test instance..."
-                    // pulls the Docker image onto the EC2 instance.
-                    sh "ssh -o StrictHostKeyChecking=no -i $HOME/.ssh/Gihan4.pem ec2-user@${testip} 'docker pull gihan4/docker-compose-image:${BUILD_NUMBER}'"
-                    // Copy the docker-compose.yml file to the EC2 instance
+                    // pulls the Docker app image onto the EC2 instance.
+                    sh "ssh -o StrictHostKeyChecking=no -i $HOME/.ssh/Gihan4.pem ec2-user@${testip} 'docker pull gihan4/appimage:${BUILD_NUMBER}'"
+                    // Copy the docker-compose.yml file to the EC2 instance.
                     sh "scp -o StrictHostKeyChecking=no -i $HOME/.ssh/Gihan4.pem Pipeline_Docker_Compose/docker_compose_project/docker-compose.yml ec2-user@${testip}:~/docker-compose.yml"
-                    // SSH into the EC2 instance and run docker-compose
+                    // Copy the database folder to the EC2 instance.
+                    sh "scp -o StrictHostKeyChecking=no -i $HOME/.ssh/Gihan4.pem -r Pipeline_Docker_Compose/docker_compose_project/database ec2-user@${testip}:~/"
+                    // SSH into the EC2 instance and run docker-compose.
                     sh "ssh -o StrictHostKeyChecking=no -i $HOME/.ssh/Gihan4.pem ec2-user@${testip} 'docker-compose -f ~/docker-compose.yml up -d'"
             }
         }
