@@ -73,13 +73,8 @@ pipeline {
         stage('Clone') {
             steps {
                 echo "Cloning repository..."
-                try {
-                    git 'https://github.com/Gihan4/docker_compose_project.git'
-                    sh 'ls'
-                } catch (Exception e) {
-                    // error message
-                    error "Error occurred during cloning: ${e.message}"
-                }
+                sh 'git clone https://github.com/Gihan4/docker_compose_project.git'
+                sh 'ls'
             }
         }
 
