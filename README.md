@@ -7,3 +7,4 @@ then starting the services with 'docker-compose up' which than pulls the image w
 prerequisites: 
 configuring aws, dockerhub, jenkins, git on local machine.
 download docker and docker-compose on local machine.
+role to the instances.
