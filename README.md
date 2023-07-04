@@ -8,3 +8,8 @@ prerequisites:
 configuring aws, dockerhub, jenkins, git on local machine.
 download docker and docker-compose on local machine.
 role to the instances.
+
+what I learned:
+that its best to build containers outside of test and prod machines.
+that i can build a container with several tags. i did one for auto versioning the images, and other to pull with to aws. (because the "$buildnumber" is a jenkins variable).
+
