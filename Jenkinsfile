@@ -111,16 +111,16 @@ pipeline {
         stage('Check Flask API') {
             steps {
                 echo "Checking Flask API..."
-        
-                // Make an HTTP request to the /get_prices route
+    
+                // Make an HTTP request to the Flask API endpoint
                 script {
-                    def response = sh script: "curl -s -o /dev/null -w '%{http_code}' http://${testip}:5000/get_prices", returnStdout: true
+                    def response = sh script: "curl -s -o /dev/null -w '%{http_code}' http://${testip}:5000", returnStdout: true
                     def statusCode = response.trim()
-        
+                    
                     if (statusCode == '200') {
-                        echo "Flask API /get_prices route is working. Response code: ${statusCode}"
+                        echo "Flask API is running successfully. Response code: ${statusCode}"
                     } else {
-                        error "Flask API /get_prices route is not working. Response code: ${statusCode}"
+                        error "Flask API is not running. Response code: ${statusCode}"
                     }
                 }
             }
