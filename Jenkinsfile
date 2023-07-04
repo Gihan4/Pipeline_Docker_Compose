@@ -100,7 +100,7 @@ pipeline {
                     // pulls the Docker app image onto the EC2 instance.
                     sh "ssh -o StrictHostKeyChecking=no -i $HOME/.ssh/Gihan4.pem ec2-user@${testip} 'docker pull gihan4/appimage:${BUILD_NUMBER}'"
                     // Copy the docker-compose.yml file to the EC2 instance.
-                    sh "scp -o StrictHostKeyChecking=no -i $HOME/.ssh/Gihan4.pem /var/lib/jenkins/workspace/Pipeline_Docker_Compose/docker_compose_projec/docker-compose.yml ec2-user@${testip}:~/docker-compose.yml"
+                    sh "scp -o StrictHostKeyChecking=no -i $HOME/.ssh/Gihan4.pem /var/lib/jenkins/workspace/Pipeline_Docker_Compose/docker_compose_project/docker-compose.yml ec2-user@${testip}:~/docker-compose.yml"
                     // Copy the database folder to the EC2 instance.
                     sh "scp -o StrictHostKeyChecking=no -i $HOME/.ssh/Gihan4.pem -r /var/lib/jenkins/workspace/Pipeline_Docker_Compose/docker_compose_project/database ec2-user@${testip}:~/"
                     // SSH into the EC2 instance and run docker-compose.
