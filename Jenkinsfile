@@ -11,6 +11,10 @@ pipeline {
             script: "aws ec2 describe-instances --region eu-central-1 --filters 'Name=tag:Environment,Values=Compose1' --query 'Reservations[].Instances[].PublicIpAddress' --output text",
             returnStdout: true
         ).trim()
+        prodip = sh(
+            script: "aws ec2 describe-instances --region eu-central-1 --filters 'Name=tag:Environment,Values=P1' --query 'Reservations[].Instances[].PublicIpAddress' --output text",
+            returnStdout: true
+        ).trim()
     }
 
     stages {
@@ -22,7 +26,7 @@ pipeline {
             }
         }
 
-        stage('Stop and Remove Containers and Images') {
+        stage('Stop and Remove Containers and Images from all machines') {
             steps {
                 // Delete from Jenkins server
                 echo "Stopping and removing containers and images on Jenkins server..."
@@ -49,12 +53,25 @@ pipeline {
                         tail -n +2 |
                         xargs -I {} docker rmi gihan4/appimage:{} || true'
                 """
+                
+                // Delete from AWS Production instance
+                echo "Stopping and removing containers and images on AWS Production instance..."
+                sh """
+                    ssh -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/Gihan4.pem ec2-user@${prodip} '
+                        docker stop \$(docker ps -aq) || true &&
+                        docker rm \$(docker ps -aq) || true &&
+                        docker images --format "{{.Repository}}:{{.Tag}}" gihan4/appimage:* |
+                        awk -F: "{print \\\$2}" |
+                        sort -r |
+                        tail -n +2 |
+                        xargs -I {} docker rmi gihan4/appimage:{} || true'
+                """
             }
         }
 
 
 
-        stage('Install Docker and Docker-compose on AWS Instance') {
+        stage('Install Docker and Docker-compose on Instances') {
             steps {
               
                 echo "Installing Docker and Docker Compose on AWS test instance..."
@@ -67,6 +84,18 @@ pipeline {
                         sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose &&
                         sudo chmod +x /usr/local/bin/docker-compose'
                 '''       
+
+                echo "Installing Docker and Docker Compose on AWS production instance..."
+                sh '''
+                    ssh -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/Gihan4.pem ec2-user@${prodip} '
+                        sudo yum update -y &&
+                        sudo yum install -y docker &&
+                        sudo service docker start &&
+                        sudo usermod -aG docker ec2-user &&
+                        sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose &&
+                        sudo chmod +x /usr/local/bin/docker-compose'
+                '''  
+                
             }
         }
 
@@ -123,6 +152,19 @@ pipeline {
                         error "Flask API is not running. Response code: ${statusCode}"
                     }
                 }
+            }
+        }
+
+
+        stage('Deploy on Production server') {
+            steps {
+                echo "Deploying after testing on AWS production instance..."
+                    // Copy the docker-compose.yml file to the EC2 instance.
+                    sh "scp -o StrictHostKeyChecking=no -i $HOME/.ssh/Gihan4.pem /var/lib/jenkins/workspace/PIpeline_compose/docker_compose_project/docker-compose.yml ec2-user@${prodip}:~/docker-compose.yml"
+                    // Copy the database folder to the EC2 instance.
+                    sh "scp -o StrictHostKeyChecking=no -i $HOME/.ssh/Gihan4.pem -r /var/lib/jenkins/workspace/PIpeline_compose/docker_compose_project/database ec2-user@${prodip}:~/"
+                    // SSH into the EC2 instance and run docker-compose that will pull the app image from Docker Hub and run the services.
+                    sh "ssh -o StrictHostKeyChecking=no -i $HOME/.ssh/Gihan4.pem ec2-user@${prodip} 'docker-compose -f ~/docker-compose.yml up -d'"
             }
         }
 
