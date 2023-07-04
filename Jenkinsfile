@@ -30,11 +30,11 @@ pipeline {
                 sh "docker rm \$(docker ps -aq) || true"
                 // except for the latest version of the image
                 sh """
-                    docker images --format '{{.Repository}}:{{.Tag}}' gihan4/myimage:* |
+                    docker images --format '{{.Repository}}:{{.Tag}}' gihan4/appimage:* |
                     awk -F: '{print \$2}' |
                     sort -r |
                     tail -n +2 |
-                    xargs -I {} docker rmi gihan4/myimage:{} || true
+                    xargs -I {} docker rmi gihan4/appimage:{} || true
                 """
         
                 // Delete from AWS Test instance
@@ -43,11 +43,11 @@ pipeline {
                     ssh -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/Gihan4.pem ec2-user@${testip} '
                         docker stop \$(docker ps -aq) || true &&
                         docker rm \$(docker ps -aq) || true &&
-                        docker images --format "{{.Repository}}:{{.Tag}}" gihan4/myimage:* |
+                        docker images --format "{{.Repository}}:{{.Tag}}" gihan4/appimage:* |
                         awk -F: "{print \\\$2}" |
                         sort -r |
                         tail -n +2 |
-                        xargs -I {} docker rmi gihan4/myimage:{} || true'
+                        xargs -I {} docker rmi gihan4/appimage:{} || true'
                 """
             }
         }
