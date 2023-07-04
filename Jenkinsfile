@@ -82,7 +82,7 @@ pipeline {
             steps {
                 echo "Building Docker image from app..."
                 dir('docker_compose_project') {
-                    sh 'docker build -t gihan4/appimage:${BUILD_NUMBER} -f app/Dockerfile .'
+                    sh 'docker build -t gihan4/appimage:${BUILD_NUMBER} -t gihan4/appimage:latest -f app/Dockerfile .'
                 }
             }
         }
@@ -98,7 +98,7 @@ pipeline {
             steps {
                 echo "Deploying and testing on AWS test instance..."
                     // pulls the Docker app image onto the EC2 instance.
-                    sh "ssh -o StrictHostKeyChecking=no -i $HOME/.ssh/Gihan4.pem ec2-user@${testip} 'docker pull gihan4/appimage:${BUILD_NUMBER}'"
+                    sh "ssh -o StrictHostKeyChecking=no -i $HOME/.ssh/Gihan4.pem ec2-user@${testip} 'docker pull gihan4/appimage:latest'"
                     // Copy the docker-compose.yml file to the EC2 instance.
                     sh "scp -o StrictHostKeyChecking=no -i $HOME/.ssh/Gihan4.pem /var/lib/jenkins/workspace/PIpeline_compose/docker_compose_project/docker-compose.yml ec2-user@${testip}:~/docker-compose.yml"
                     // Copy the database folder to the EC2 instance.
