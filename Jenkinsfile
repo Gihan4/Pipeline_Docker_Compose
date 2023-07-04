@@ -90,8 +90,7 @@ pipeline {
         stage('Push app Image to Docker Hub') {
             steps {
                 echo "Pushing Docker image to Docker Hub..."
-                sh 'docker push gihan4/appimage:${BUILD_NUMBER}'
-                sh 'docker push gihan4/appimage:latest'
+                sh 'docker push --all-tags gihan4/appimage'
             }
         }
 
