@@ -91,6 +91,7 @@ pipeline {
             steps {
                 echo "Pushing Docker image to Docker Hub..."
                 sh 'docker push gihan4/appimage:${BUILD_NUMBER}'
+                sh 'docker push gihan4/appimage:latest'
             }
         }
 
@@ -98,12 +99,12 @@ pipeline {
             steps {
                 echo "Deploying and testing on AWS test instance..."
                     // pulls the Docker app image onto the EC2 instance.
-                    sh "ssh -o StrictHostKeyChecking=no -i $HOME/.ssh/Gihan4.pem ec2-user@${testip} 'docker pull gihan4/appimage:latest'"
+                    // sh "ssh -o StrictHostKeyChecking=no -i $HOME/.ssh/Gihan4.pem ec2-user@${testip} 'docker pull gihan4/appimage:latest'"
                     // Copy the docker-compose.yml file to the EC2 instance.
                     sh "scp -o StrictHostKeyChecking=no -i $HOME/.ssh/Gihan4.pem /var/lib/jenkins/workspace/PIpeline_compose/docker_compose_project/docker-compose.yml ec2-user@${testip}:~/docker-compose.yml"
                     // Copy the database folder to the EC2 instance.
                     sh "scp -o StrictHostKeyChecking=no -i $HOME/.ssh/Gihan4.pem -r /var/lib/jenkins/workspace/PIpeline_compose/docker_compose_project/database ec2-user@${testip}:~/"
-                    // SSH into the EC2 instance and run docker-compose.
+                    // SSH into the EC2 instance and run docker-compose that will pull the app image from Docker Hub.
                     sh "ssh -o StrictHostKeyChecking=no -i $HOME/.ssh/Gihan4.pem ec2-user@${testip} 'docker-compose -f ~/docker-compose.yml up -d'"
             }
         }
