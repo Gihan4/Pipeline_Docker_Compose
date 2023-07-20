@@ -51,6 +51,7 @@ pipeline {
 
         stage('Stop and Remove Containers and Images from all machines') {
             steps {
+                
                 // Delete from Jenkins server
                 echo "Stopping and removing containers and images on Jenkins server..."
                 sh "docker stop \$(docker ps -aq) || true"
@@ -59,21 +60,24 @@ pipeline {
         
                 // Delete from AWS Test instance
                 echo "Stopping and removing containers and images on AWS Test instance..."
-                sshCommand remote: ec2TestInstance, command: '''
-                    docker stop \$(docker ps -aq) || true
-                    docker rm \$(docker ps -aq) || true
-                    docker rmi -f \$(docker images -aq) || true
-                '''
-        
-                // Delete from AWS Production instance
-                echo "Stopping and removing containers and images on AWS Production instance..."
-                sshCommand remote: ec2ProdInstance, command: '''
-                    docker stop \$(ssh docker ps -aq) || true
-                    docker rm \$(ssh docker ps -aq) || true
-                    docker rmi -f \$(ssh docker images -aq) || true
-                '''
+                sh """
+                   ssh -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/Gihan4.pem ec2-user@${testip} '
+                   docker stop \$(docker ps -aq) || true &&
+                   docker rm \$(docker ps -aq) || true &&
+                   docker rmi -f \$(docker images -aq) || true'
+                """
+
+                // Delete from AWS Prodiction instance
+                echo "Stopping and removing containers and images on AWS Test instance..."
+                sh """
+                   ssh -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/Gihan4.pem ec2-user@${prodip} '
+                   docker stop \$(docker ps -aq) || true &&
+                   docker rm \$(docker ps -aq) || true &&
+                   docker rmi -f \$(docker images -aq) || true'
+                """
             }
         }
+
 
 
         stage('Clone') {
