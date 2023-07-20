@@ -68,13 +68,12 @@ pipeline {
                 // Delete from AWS Production instance
                 echo "Stopping and removing containers and images on AWS Production instance..."
                 sshCommand remote: ec2ProdInstance, command: '''
-                    docker stop \$(docker ps -aq) || true
-                    docker rm \$(docker ps -aq) || true
-                    docker rmi -f \$(docker images -aq) || true
+                    docker stop \$(ssh docker ps -aq) || true
+                    docker rm \$(ssh docker ps -aq) || true
+                    docker rmi -f \$(ssh docker images -aq) || true
                 '''
             }
         }
-
 
 
         stage('Clone') {
