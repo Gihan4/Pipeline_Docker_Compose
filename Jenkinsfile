@@ -1,11 +1,6 @@
 pipeline {
     agent any
 
-    //triggers {
-        // The pipeline is triggered every minute to check for changes in the git
-        // pollSCM('*/1 * * * *')
-    //}
-
     environment {
         testip = sh(
             script: "aws ec2 describe-instances --region eu-central-1 --filters 'Name=tag:Environment,Values=Compose1' --query 'Reservations[].Instances[].PublicIpAddress' --output text",
@@ -25,51 +20,6 @@ pipeline {
                 sh 'rm -rf *'
             }
         }
-
-        stage('Stop and Remove Containers and Images from all machines') {
-            steps {
-                // Delete from Jenkins server
-                echo "Stopping and removing containers and images on Jenkins server..."
-                sh "docker stop \$(docker ps -aq) || true"
-                sh "docker rm \$(docker ps -aq) || true"
-                // except for the latest version of the image
-                sh """
-                    docker images --format '{{.Repository}}:{{.Tag}}' gihan4/appimage:* |
-                    awk -F: '{print \$2}' |
-                    sort -r |
-                    tail -n +2 |
-                    xargs -I {} docker rmi gihan4/appimage:{} || true
-                """
-        
-                // Delete from AWS Test instance
-                echo "Stopping and removing containers and images on AWS Test instance..."
-                sh """
-                    ssh -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/Gihan4.pem ec2-user@${testip} '
-                        docker stop \$(docker ps -aq) || true &&
-                        docker rm \$(docker ps -aq) || true &&
-                        docker images --format "{{.Repository}}:{{.Tag}}" gihan4/appimage:* |
-                        awk -F: "{print \\\$2}" |
-                        sort -r |
-                        tail -n +2 |
-                        xargs -I {} docker rmi gihan4/appimage:{} || true'
-                """
-                
-                // Delete from AWS Production instance
-                echo "Stopping and removing containers and images on AWS Production instance..."
-                sh """
-                    ssh -o StrictHostKeyChecking=no -i /var/lib/jenkins/.ssh/Gihan4.pem ec2-user@${prodip} '
-                        docker stop \$(docker ps -aq) || true &&
-                        docker rm \$(docker ps -aq) || true &&
-                        docker images --format "{{.Repository}}:{{.Tag}}" gihan4/appimage:* |
-                        awk -F: "{print \\\$2}" |
-                        sort -r |
-                        tail -n +2 |
-                        xargs -I {} docker rmi gihan4/appimage:{} || true'
-                """
-            }
-        }
-
-
 
         stage('Install Docker and Docker-compose on Instances') {
             steps {
@@ -98,6 +48,34 @@ pipeline {
                 
             }
         }
+
+        stage('Stop and Remove Containers and Images from all machines') {
+            steps {
+                // Delete from Jenkins server
+                echo "Stopping and removing containers and images on Jenkins server..."
+                sh "docker stop \$(docker ps -aq) || true"
+                sh "docker rm \$(docker ps -aq) || true"
+                sh "docker rmi -f \$(docker images -aq) || true"
+        
+                // Delete from AWS Test instance
+                echo "Stopping and removing containers and images on AWS Test instance..."
+                sshCommand remote: ec2TestInstance, command: '''
+                    docker stop \$(docker ps -aq) || true
+                    docker rm \$(docker ps -aq) || true
+                    docker rmi -f \$(docker images -aq) || true
+                '''
+        
+                // Delete from AWS Production instance
+                echo "Stopping and removing containers and images on AWS Production instance..."
+                sshCommand remote: ec2ProdInstance, command: '''
+                    docker stop \$(docker ps -aq) || true
+                    docker rm \$(docker ps -aq) || true
+                    docker rmi -f \$(docker images -aq) || true
+                '''
+            }
+        }
+
+
 
         stage('Clone') {
             steps {
