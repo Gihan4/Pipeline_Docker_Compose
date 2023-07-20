@@ -108,9 +108,9 @@ pipeline {
             steps {
                 echo "Deploying and testing on AWS test instance..."
                     // Copy the docker-compose.yml file to the EC2 instance.
-                    sh "scp -o StrictHostKeyChecking=no -i $HOME/.ssh/Gihan4.pem /var/lib/jenkins/workspace/PIpeline_compose/docker_compose_project/docker-compose.yml ec2-user@${testip}:~/docker-compose.yml"
+                    sh "scp -o StrictHostKeyChecking=no -i $HOME/.ssh/Gihan4.pem /var/lib/jenkins/workspace/docker-compose-pipeline/docker_compose_project/docker-compose.yml ec2-user@${testip}:~/docker-compose.yml"
                     // Copy the database folder to the EC2 instance.
-                    sh "scp -o StrictHostKeyChecking=no -i $HOME/.ssh/Gihan4.pem -r /var/lib/jenkins/workspace/PIpeline_compose/docker_compose_project/database ec2-user@${testip}:~/"
+                    sh "scp -o StrictHostKeyChecking=no -i $HOME/.ssh/Gihan4.pem -r /var/lib/jenkins/workspace/docker-compose-pipeline/docker_compose_project/database ec2-user@${testip}:~/"
                     // SSH into the EC2 instance and run docker-compose that will pull the app image from Docker Hub.
                     sh "ssh -o StrictHostKeyChecking=no -i $HOME/.ssh/Gihan4.pem ec2-user@${testip} 'docker-compose -f ~/docker-compose.yml up -d'"
             }
@@ -139,9 +139,9 @@ pipeline {
             steps {
                 echo "Deploying after testing on AWS production instance..."
                     // Copy the docker-compose.yml file to the EC2 instance.
-                    sh "scp -o StrictHostKeyChecking=no -i $HOME/.ssh/Gihan4.pem /var/lib/jenkins/workspace/PIpeline_compose/docker_compose_project/docker-compose.yml ec2-user@${prodip}:~/docker-compose.yml"
+                    sh "scp -o StrictHostKeyChecking=no -i $HOME/.ssh/Gihan4.pem /var/lib/jenkins/workspace/docker-compose-pipeline/docker_compose_project/docker-compose.yml ec2-user@${prodip}:~/docker-compose.yml"
                     // Copy the database folder to the EC2 instance.
-                    sh "scp -o StrictHostKeyChecking=no -i $HOME/.ssh/Gihan4.pem -r /var/lib/jenkins/workspace/PIpeline_compose/docker_compose_project/database ec2-user@${prodip}:~/"
+                    sh "scp -o StrictHostKeyChecking=no -i $HOME/.ssh/Gihan4.pem -r /var/lib/jenkins/workspace/docker-compose-pipeline/docker_compose_project/database ec2-user@${prodip}:~/"
                     // SSH into the EC2 instance and run docker-compose that will pull the app image from Docker Hub and run the services.
                     sh "ssh -o StrictHostKeyChecking=no -i $HOME/.ssh/Gihan4.pem ec2-user@${prodip} 'docker-compose -f ~/docker-compose.yml up -d'"
             }
