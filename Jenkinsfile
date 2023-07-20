@@ -126,8 +126,6 @@ pipeline {
         stage('Deploy on Test server') {
             steps {
                 echo "Deploying and testing on AWS test instance..."
-                    // pulls the Docker app image onto the EC2 instance.
-                    // sh "ssh -o StrictHostKeyChecking=no -i $HOME/.ssh/Gihan4.pem ec2-user@${testip} 'docker pull gihan4/appimage:latest'"
                     // Copy the docker-compose.yml file to the EC2 instance.
                     sh "scp -o StrictHostKeyChecking=no -i $HOME/.ssh/Gihan4.pem /var/lib/jenkins/workspace/PIpeline_compose/docker_compose_project/docker-compose.yml ec2-user@${testip}:~/docker-compose.yml"
                     // Copy the database folder to the EC2 instance.
